@@ -1,0 +1,9 @@
+{
+	"name": "repadf4",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "917c2336-1602-49a9-bc29-bd780192d681",
+		"tenantId": "25a33a78-0d38-4e08-a19d-a1573dee9d6a"
+	}
+}
