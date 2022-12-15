@@ -13,7 +13,8 @@
 				"fileName": "FBC_UW5000_01_20221017-20221026.TXT",
 				"container": "containerfbc50001"
 			},
-			"columnDelimiter": ",",
+			"columnDelimiter": "\t",
+			"rowDelimiter": "\n",
 			"escapeChar": "\\",
 			"firstRowAsHeader": true,
 			"quoteChar": "\""
