@@ -1,0 +1,653 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "repadf4"
+		},
+		"AzureBlobStorage1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
+		},
+		"AzureBlobStorage2_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage2'"
+		},
+		"outputlink_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'outputlink'"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "dataflow1",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"source1": {},
+									"source2": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "ErrorDetails",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Data flow1",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "Error",
+							"value": {
+								"value": "activity('Dataflow1').Error.message",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"variables": {
+					"Error": {
+						"type": "String"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/dataflow1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataset2')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "FBC_UW5000_40_20221017-20221026.TXT",
+						"container": "containerfbc5040"
+					},
+					"columnDelimiter": "\t",
+					"rowDelimiter": "\n",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "RISK_ID\tRISK_TERM\tRISK_AMEND\tACV_ROOF_SURFACING\tASSISTED_LIVING_COV_C_LIMIT\tASSISTED_LIVING_COV_E_LIMIT\tASSISTED_LIVING_REL_NAME\tASSISTED_LIVING_RES_NAME\tASSISTED_LIVING_RES_CITY\tASSISTED_LIVING_RES_ST\tASSISTED_LIVING_RES_ZIP\tAWNINGS\tBOARDING_HOUSE\tBUILDERS_RISK\tBURGLARY\tCANINE_LIAB_EXCL_DESC\tCOMMERCIAL_RISK\tCONDEMNED\tCOVERAGE_B_OFF_PREMISES\tCOUNTY_FIPS_CODE\tCOV_RESTR_PAINT\tCOV_RESTR_ROOF\tCOV_RESTR_SIDING\tCREDIT_CARD_FORGERY_INCR_LIMIT\tDAMAGE_OTHER_PROP\tDATA_SHARING\tHOME_DAY_CARE_IN_DWELLING\tHOME_DAY_CARE_IN_DWELLING_DESC\tHOME_SHARING_COVERAGE\tHOME_SHARING_NIGHTS\tHOME_SHARING_INCR_DAMAGE\tHSB_CYBER\tHSB_HOME_SYSTEMS\tHSB_SERVICE_LINE\tINC_FARMING_LIABILITY_DESC\tINC_FARMING_LIABILITY_LOC\tLIVESTOCK_COLLISION_NBR\tLOSS_SETT_REPL_COST_DWELL\tLOSS_SETT_REPL_COST_DWELL_COV\tLOSS_SETTLEMENT\tLOSS_SETTLEMENT_SPECIAL_PCT\tMERCH_HELD_FOR_SALE\tMETAL_ROOF_EXLUSION\tMONTHS_UNOCCUPIED\tOCCASSIONAL_RENTAL\tOTHER_INSURED_HSHLD_NAME\tPACKAGE_ENDORSEMENT\tPERMITTED_VACANCY\tPERMITTED_VACANCY_START\tPERMITTED_VACANCY_END\tPERSONAL_INJURY_AIRCRAFT\tPERSONAL_INJURY_COVERAGE\tRADIO_AND_TV\tRENTAL_EXTENDED_THEFT\tREPL_COST_NON_BLDG\tRESIDENCE_IN_TRUST_NAME\tRESIDENCE_IN_TRUST_TTE\tROOF_EXCLUSION\tROOF_EXCLUSION_ADDRESS\tSIGNS\tSPECIAL_COMPUTER_COVERAGE\tSPECIFIC_BUILDING_EXCLUSION_ADDRESS\tSPECIFIC_BUILDING_EXCLUSION_DESC\tSPECIFIC_BUILDING_EXCLUSION_TYPE\tSTUDENT_AWAY_NAME_ADDRESS\tSTUDENT_AWAY_SCHOOL_NAME\tSWIM_POOL_FENCE_PERM_AND_LOCKABLE\tSWIM_POOL_FULL\tTEMP_NON_RESID_EXP\tTEMP_NON_RESID_INCEPT\tTHEFT_COV_INCR_AMT\tTHEFT_IN_DWELLING_UNDER_CONST_END\tTHEFT_IN_DWELLING_UNDER_CONST_START\tUNMANNED_AIRCRAFT\tWATER_DAMAGE\tWATER_LEAK_DETECTION\tCAPACITY_LOCKED\tCAPACITY_LOCKED_DATE\tCAT_ZONE_HURR\tCAT_ZONE_SEVERE_CONNECTIVE\tCAT_ZONE_WILDFIRE\tCAT_ZONE_WINTERSTORM\tNON_CAT_TERR_FR\tNON_CAT_TERR_WT\tNON_CAT_TERR_LG\tNON_CAT_TERR_TH\tNON_CAT_TERR_LB\tNON_CAT_TERR_OT\tNON_CAT_TERR_WW\tNON_CAT_TERR_XH\tNON_CAT_TERR_XW\tALIUMINUM_WIRING\tBITE_HISTORY\tBITE_HISTORY_DESCRIPTION\tBUSINESS_DESCRIPTION\tCENSUS_BLOCK\tCONSTRUCTION_TYPE_DESC\tEXOTIC_ANIMAL_DESC\tFELONY\tFIRE_STATION_STAFFING\tFIRE_HYDRANT_1000_FT\tFUEL_TYPE_SECONDARY\tGARAGE_OR_CARPORT\tHAS_DO_IT_YOURSELF_REMODELING\tLEAD_HAZARD\tNEW_HOME_PURCHASE\tNUMBER_OF_VEHICLES\tOWN_PREV_HOM\tPLUMBING_MATERIAL\tPRIOR_RENTER_POLICY\tROOF_MATERIAL_OTHER_DESC\tSMART_SMOKE_DETECTOR\tSMOKE_DETECTOR_EVERY_FLOOR\tSTILTS\tTRAMPOLINE_ON_PREMISES_ENCLOSURE\tFARM_BUREAU_MEMBERSHIP\tHAS_FBA_AUTO_POLICY\tPRIOR_PROPERTY_ADDRESS_START_DATE\tRATING_NCF_FINANCIAL_BAND\tSUBJECT1_DATE_ORDERED\tSUBJECT1_DATE_RECEIVED\tSUBJECT1_FINANCIAL_BAND\tSUBJECT1_REFERENCE_NUMBER\tSUBJECT1_STATUS\tSUBJECT1_SUBJECT_NAME\tSUBJECT2_DATE_ORDERED\tSUBJECT2_DATE_RECEIVED\tSUBJECT2_FINANCIAL_BAND\tSUBJECT2_REFERENCE_NUMBER\tSUBJECT2_STATUS\tSUBJECT2_SUBJECT_NAME\tBEGIN_DATE_RANGE\tEND_DATE_RANGE\tPRODUCTION_DATE_CREATED",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataset5001')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "FBC_UW5000_01_20221017-20221026.TXT",
+						"container": "containerfbc50001"
+					},
+					"columnDelimiter": "\t",
+					"rowDelimiter": "\n",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "RISK_ID\tRISK_TERM\tRISK_AMEND\tAGENCY_ID\tAGENT_ID\tAPP_DATE_CREATED\tAPP_DATE_UPDATED\tCOMMISSION_PLAN\tEFFECTIVE_DATE\tEXPIRATION_DATE\tPOLICY_FORM\tPREMIUM_GROUP\tRATE_BOOK\tRISK_ORIGIN\tSTATE\tSTATUS_UW\tTOTAL_APPLICATION_PREMIUM\tALL_OTHER_PERILS_DED\tBINDER\tBINDER_EFFECTIVE_DATE_TIME\tBINDER_EXPIRE_DATE_TIME\tBUS_PROP_ON_PREM_LIMIT\tDEBRIS_REMOVAL\tDWELLING_LIMIT\tEARTHQUAKE_DED\tEQUIPMENT_BREAKDOWN\tFIRE_DEPT_SERVICE_CHARGE_LIMIT\tFUNGI_LIABILITY_LIMIT\tFUNGI_PROPERTY_LIMIT\tHURRICANE_DED\tID_THEFT_LIMIT\tINCIDENTAL_FARMING_LIABILITY\tINCIDENTAL_OCCUPANCY\tINCIDENTAL_OCCUPANCY_DESC\tLOSS_ASSESSMENT_LIMIT\tLOSS_OF_USE_LIMIT\tLOSS_OF_USE_PCT\tMEDICAL_PAYMENTS_LIMIT\tORDINANCE_LAW\tOTHER_STRUCTURES_LIMIT\tOTHER_STRUCTURES_PCT\tOPENING_WINDOW_PROT\tPERSONAL_LIABILITY_LIMIT\tPERSONAL_PROPERTY_LIMIT\tPERSONAL_PROPERTY_PCT\tREPLACEMENT_COST_CONTENTS\tREPLACEMENT_COST_DWELLING\tSINKHOLE_COV\tTHEFT_DED\tUNSCHEDULED_INCR_COV_C_SPECIAL_ELEC\tUNSCHEDULED_INCR_COV_C_SPECIAL_GUNS\tUNSCHEDULED_INCR_COV_C_JWF\tUNSCHEDULED_INCR_COV_C_SPECIAL_MONEY\tUNSCHEDULED_INCR_COV_C_SPECIAL_SECURITIES\tUNSCHEDULED_INCR_COV_C_SPECIAL_SILVER\tUNSCHEDULED_REFRIGERATED_FOOD\tWATER_SEWER_BACKUP\tWIND_HAIL_DED\tAGENT_REMARKS\tANIMALS_ON_PREMISES\tAPARTMENTS\tARSON\tBREED\tBUILDING_CODE_GRADE\tBUSINESS_ON_PREMISE\tCONSTRUCTION_TYPE\tCOVERAGE_DECLINED\tCOVERAGE_DECLINED_DESC\tDATE_AT_CURRENT_RESIDENCE\tPURCHASE_DATE\tDAY_CARE\tDEADBOLT_LOCKS\tFIRE_HYDRANT_DISTANCE\tDISTANCE_TO_COAST\tDOGS_ON_PREMISES\tDWELLING_LOCATION\tDWELLING_REPLACEMENT_VALUE\tEARTHQUAKE_ZONE\tEXOTIC_ANIMALS\tFIRE_DIVISIONS\tFIRE_EXTINGUISHER\tFIRE_SPRINKLER\tFIRE_STATION\tFIRE_STATION_DISTANCE\tFORECLOSURE_OR_REPO\tFORECLOSURE_OR_REPO_DESC\tFOUNDATION\tHEAT_TYPE_PRIMARY\tHEAT_TYPE_SECONDARY\tLATITUDE\tLONGITUDE\tNON_SMOKER\tNUM_OF_STORIES\tNUMBER_OF_FAMILIES\tOCCUPIED_BY\tPREMIUM_TAX_CODE\tPRIOR_CARRIER\tPRIOR_CARRIER_OTHER\tPRIOR_DATE_EXPIRE\tPRIOR_POLICY_NBR\tPROPERTY_ADDRESS_1\tPROPERTY_ADDRESS_2\tPROPERTY_CITY\tPROPERTY_COUNTY\tPROPERTY_STATE\tPROPERTY_ZIP\tPROTECTION_CLASS\tPROTECTION_TYPE_BURGLAR\tPROTECTION_TYPE_SMOKE\tPROTECTION_TYPE_TEMPERATURE\tPURCHASE_PRICE\tRENO_HEAT_YEAR\tRENO_PLUMBING_YEAR\tRENO_ROOF_YEAR\tRENO_WIRING_YEAR\tRESIDENCE_EMPLOYEES_DESC\tRESIDENCE_EMPLOYEES_FT\tRESIDENCE_EMPLOYEES_PT\tROOF_MATERIAL\tROOF_SHAPE\tROOMS\tSECURITY_ATTENDANT\tSQ_FEET_TOTAL\tSTRUCTURE_TYPE\tSWIM_POOL\tSWIM_POOL_DIVE\tSWIM_POOL_SLIDE\tTERRITORY\tTRAMPOLINE_ON_PREMISES\tUNITS_IN_FIRE_DIVISION\tUSAGE_TYPE\tYEAR_BUILT\tCO_INSURED_DOB\tCO_INSURED_EMAIL\tCO_INSURED_LAST_NAME\tCO_INSURED_MAIL_ADDRESS_1\tCO_INSURED_MAIL_ADDRESS_2\tCO_INSURED_MAIL_CITY\tCO_INSURED_MAIL_STATE\tCO_INSURED_MAIL_ZIP\tCO_INSURED_MARITAL_STATUS\tCO_INSURED_MIDDLE_NAME\tCO_INSURED_FIRST_NAME\tCO_INSURED_OCCUPATION\tCO_INSURED_PHONE_PRI\tCO_INSURED_PHONE_PRI_TYPE\tCO_INSURED_SUFFIX\tINSURED_DOB\tINSURED_EMAIL\tINSURED_FIRST_NAME\tINSURED_LAST_NAME\tINSURED_MAIL_ADDRESS_1\tINSURED_MAIL_ADDRESS_2\tINSURED_MAIL_CITY\tINSURED_MAIL_STATE\tINSURED_MAIL_ZIP\tINSURED_MARITAL_STATUS\tINSURED_MIDDLE_NAME\tINSURED_OCCUPATION\tINSURED_PHONE_PRI\tINSURED_PHONE_PRI_TYPE\tINSURED_PHONE_SEC\tINSURED_PHONE_SEC_TYPE\tINSURED_PRIOR_ADDRESS_1\tINSURED_PRIOR_ADDRESS_2\tINSURED_PRIOR_CITY\tINSURED_PRIOR_STATE\tINSURED_PRIOR_ZIP\tINSURED_SALUTATION\tINSURED_SUFFIX\tBILLING_PLAN\tSEND_BILL_TO\tSEND_BILL_TO_RENEWAL\tBEGIN_DATE_RANGE\tEND_DATE_RANGE\tPRODUCTION_DATE_CREATED",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureBlobStorage1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureBlobStorage1_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureBlobStorage2')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureBlobStorage2_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/outputlink')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('outputlink_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflow1')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "dataset5001",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						},
+						{
+							"dataset": {
+								"referenceName": "dataset5001",
+								"type": "DatasetReference"
+							},
+							"name": "source2"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "output",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "join1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          RISK_ID as string,",
+						"          RISK_TERM as short,",
+						"          RISK_AMEND as short,",
+						"          AGENCY_ID as short,",
+						"          AGENT_ID as short,",
+						"          APP_DATE_CREATED as timestamp,",
+						"          APP_DATE_UPDATED as timestamp,",
+						"          COMMISSION_PLAN as string,",
+						"          EFFECTIVE_DATE as date,",
+						"          EXPIRATION_DATE as date,",
+						"          POLICY_FORM as string,",
+						"          PREMIUM_GROUP as string,",
+						"          RATE_BOOK as string,",
+						"          RISK_ORIGIN as string,",
+						"          STATE as string,",
+						"          STATUS_UW as string,",
+						"          TOTAL_APPLICATION_PREMIUM as double,",
+						"          ALL_OTHER_PERILS_DED as string,",
+						"          BINDER as boolean,",
+						"          BINDER_EFFECTIVE_DATE_TIME as string,",
+						"          BINDER_EXPIRE_DATE_TIME as string,",
+						"          BUS_PROP_ON_PREM_LIMIT as double,",
+						"          DEBRIS_REMOVAL as short,",
+						"          DWELLING_LIMIT as integer,",
+						"          EARTHQUAKE_DED as string,",
+						"          EQUIPMENT_BREAKDOWN as string,",
+						"          FIRE_DEPT_SERVICE_CHARGE_LIMIT as short,",
+						"          FUNGI_LIABILITY_LIMIT as integer,",
+						"          FUNGI_PROPERTY_LIMIT as short,",
+						"          HURRICANE_DED as string,",
+						"          ID_THEFT_LIMIT as boolean,",
+						"          INCIDENTAL_FARMING_LIABILITY as string,",
+						"          INCIDENTAL_OCCUPANCY as boolean,",
+						"          INCIDENTAL_OCCUPANCY_DESC as string,",
+						"          LOSS_ASSESSMENT_LIMIT as short,",
+						"          LOSS_OF_USE_LIMIT as integer,",
+						"          LOSS_OF_USE_PCT as string,",
+						"          MEDICAL_PAYMENTS_LIMIT as string,",
+						"          ORDINANCE_LAW as string,",
+						"          OTHER_STRUCTURES_LIMIT as integer,",
+						"          OTHER_STRUCTURES_PCT as short,",
+						"          OPENING_WINDOW_PROT as boolean,",
+						"          PERSONAL_LIABILITY_LIMIT as string,",
+						"          PERSONAL_PROPERTY_LIMIT as integer,",
+						"          PERSONAL_PROPERTY_PCT as string,",
+						"          REPLACEMENT_COST_CONTENTS as boolean,",
+						"          REPLACEMENT_COST_DWELLING as boolean,",
+						"          SINKHOLE_COV as boolean,",
+						"          THEFT_DED as string,",
+						"          UNSCHEDULED_INCR_COV_C_SPECIAL_ELEC as short,",
+						"          UNSCHEDULED_INCR_COV_C_SPECIAL_GUNS as short,",
+						"          UNSCHEDULED_INCR_COV_C_JWF as short,",
+						"          UNSCHEDULED_INCR_COV_C_SPECIAL_MONEY as short,",
+						"          UNSCHEDULED_INCR_COV_C_SPECIAL_SECURITIES as short,",
+						"          UNSCHEDULED_INCR_COV_C_SPECIAL_SILVER as short,",
+						"          UNSCHEDULED_REFRIGERATED_FOOD as boolean,",
+						"          WATER_SEWER_BACKUP as short,",
+						"          WIND_HAIL_DED as string,",
+						"          AGENT_REMARKS as string,",
+						"          ANIMALS_ON_PREMISES as boolean,",
+						"          APARTMENTS as boolean,",
+						"          ARSON as short,",
+						"          BREED as short,",
+						"          BUILDING_CODE_GRADE as string,",
+						"          BUSINESS_ON_PREMISE as short,",
+						"          CONSTRUCTION_TYPE as string,",
+						"          COVERAGE_DECLINED as short,",
+						"          COVERAGE_DECLINED_DESC as string,",
+						"          DATE_AT_CURRENT_RESIDENCE as string,",
+						"          PURCHASE_DATE as date,",
+						"          DAY_CARE as short,",
+						"          DEADBOLT_LOCKS as boolean,",
+						"          FIRE_HYDRANT_DISTANCE as short,",
+						"          DISTANCE_TO_COAST as integer,",
+						"          DOGS_ON_PREMISES as short,",
+						"          DWELLING_LOCATION as boolean,",
+						"          DWELLING_REPLACEMENT_VALUE as integer,",
+						"          EARTHQUAKE_ZONE as string,",
+						"          EXOTIC_ANIMALS as short,",
+						"          FIRE_DIVISIONS as boolean,",
+						"          FIRE_EXTINGUISHER as boolean,",
+						"          FIRE_SPRINKLER as boolean,",
+						"          FIRE_STATION as string,",
+						"          FIRE_STATION_DISTANCE as short,",
+						"          FORECLOSURE_OR_REPO as short,",
+						"          FORECLOSURE_OR_REPO_DESC as string,",
+						"          FOUNDATION as string,",
+						"          HEAT_TYPE_PRIMARY as string,",
+						"          HEAT_TYPE_SECONDARY as string,",
+						"          LATITUDE as string,",
+						"          LONGITUDE as string,",
+						"          NON_SMOKER as short,",
+						"          NUM_OF_STORIES as double,",
+						"          NUMBER_OF_FAMILIES as boolean,",
+						"          OCCUPIED_BY as string,",
+						"          PREMIUM_TAX_CODE as string,",
+						"          PRIOR_CARRIER as string,",
+						"          PRIOR_CARRIER_OTHER as string,",
+						"          PRIOR_DATE_EXPIRE as date,",
+						"          PRIOR_POLICY_NBR as string,",
+						"          PROPERTY_ADDRESS_1 as string,",
+						"          PROPERTY_ADDRESS_2 as string,",
+						"          PROPERTY_CITY as string,",
+						"          PROPERTY_COUNTY as string,",
+						"          PROPERTY_STATE as string,",
+						"          PROPERTY_ZIP as integer,",
+						"          PROTECTION_CLASS as string,",
+						"          PROTECTION_TYPE_BURGLAR as string,",
+						"          PROTECTION_TYPE_SMOKE as string,",
+						"          PROTECTION_TYPE_TEMPERATURE as string,",
+						"          PURCHASE_PRICE as integer,",
+						"          RENO_HEAT_YEAR as short,",
+						"          RENO_PLUMBING_YEAR as short,",
+						"          RENO_ROOF_YEAR as short,",
+						"          RENO_WIRING_YEAR as short,",
+						"          RESIDENCE_EMPLOYEES_DESC as string,",
+						"          RESIDENCE_EMPLOYEES_FT as boolean,",
+						"          RESIDENCE_EMPLOYEES_PT as string,",
+						"          ROOF_MATERIAL as string,",
+						"          ROOF_SHAPE as string,",
+						"          ROOMS as boolean,",
+						"          SECURITY_ATTENDANT as short,",
+						"          SQ_FEET_TOTAL as short,",
+						"          STRUCTURE_TYPE as string,",
+						"          SWIM_POOL as string,",
+						"          SWIM_POOL_DIVE as short,",
+						"          SWIM_POOL_SLIDE as short,",
+						"          TERRITORY as string,",
+						"          TRAMPOLINE_ON_PREMISES as short,",
+						"          UNITS_IN_FIRE_DIVISION as boolean,",
+						"          USAGE_TYPE as string,",
+						"          YEAR_BUILT as short,",
+						"          CO_INSURED_DOB as date,",
+						"          CO_INSURED_EMAIL as string,",
+						"          CO_INSURED_LAST_NAME as string,",
+						"          CO_INSURED_MAIL_ADDRESS_1 as string,",
+						"          CO_INSURED_MAIL_ADDRESS_2 as string,",
+						"          CO_INSURED_MAIL_CITY as string,",
+						"          CO_INSURED_MAIL_STATE as string,",
+						"          CO_INSURED_MAIL_ZIP as string,",
+						"          CO_INSURED_MARITAL_STATUS as string,",
+						"          CO_INSURED_MIDDLE_NAME as string,",
+						"          CO_INSURED_FIRST_NAME as string,",
+						"          CO_INSURED_OCCUPATION as string,",
+						"          CO_INSURED_PHONE_PRI as string,",
+						"          CO_INSURED_PHONE_PRI_TYPE as string,",
+						"          CO_INSURED_SUFFIX as string,",
+						"          INSURED_DOB as date,",
+						"          INSURED_EMAIL as string,",
+						"          INSURED_FIRST_NAME as string,",
+						"          INSURED_LAST_NAME as string,",
+						"          INSURED_MAIL_ADDRESS_1 as string,",
+						"          INSURED_MAIL_ADDRESS_2 as string,",
+						"          INSURED_MAIL_CITY as string,",
+						"          INSURED_MAIL_STATE as string,",
+						"          INSURED_MAIL_ZIP as integer,",
+						"          INSURED_MARITAL_STATUS as string,",
+						"          INSURED_MIDDLE_NAME as string,",
+						"          INSURED_OCCUPATION as string,",
+						"          INSURED_PHONE_PRI as string,",
+						"          INSURED_PHONE_PRI_TYPE as string,",
+						"          INSURED_PHONE_SEC as string,",
+						"          INSURED_PHONE_SEC_TYPE as string,",
+						"          INSURED_PRIOR_ADDRESS_1 as string,",
+						"          INSURED_PRIOR_ADDRESS_2 as string,",
+						"          INSURED_PRIOR_CITY as string,",
+						"          INSURED_PRIOR_STATE as string,",
+						"          INSURED_PRIOR_ZIP as string,",
+						"          INSURED_SALUTATION as string,",
+						"          INSURED_SUFFIX as string,",
+						"          BILLING_PLAN as boolean,",
+						"          SEND_BILL_TO as string,",
+						"          SEND_BILL_TO_RENEWAL as string,",
+						"          BEGIN_DATE_RANGE as date,",
+						"          END_DATE_RANGE as date,",
+						"          {{PRODUCTION_DATE_CREATED} as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> source1",
+						"source(output(",
+						"          RISK_ID as string,",
+						"          RISK_TERM as short,",
+						"          RISK_AMEND as short,",
+						"          AGENCY_ID as short,",
+						"          AGENT_ID as short,",
+						"          APP_DATE_CREATED as timestamp,",
+						"          APP_DATE_UPDATED as timestamp,",
+						"          COMMISSION_PLAN as string,",
+						"          EFFECTIVE_DATE as date,",
+						"          EXPIRATION_DATE as date,",
+						"          POLICY_FORM as string,",
+						"          PREMIUM_GROUP as string,",
+						"          RATE_BOOK as string,",
+						"          RISK_ORIGIN as string,",
+						"          STATE as string,",
+						"          STATUS_UW as string,",
+						"          TOTAL_APPLICATION_PREMIUM as double,",
+						"          ALL_OTHER_PERILS_DED as string,",
+						"          BINDER as boolean,",
+						"          BINDER_EFFECTIVE_DATE_TIME as string,",
+						"          BINDER_EXPIRE_DATE_TIME as string,",
+						"          BUS_PROP_ON_PREM_LIMIT as double,",
+						"          DEBRIS_REMOVAL as short,",
+						"          DWELLING_LIMIT as integer,",
+						"          EARTHQUAKE_DED as string,",
+						"          EQUIPMENT_BREAKDOWN as string,",
+						"          FIRE_DEPT_SERVICE_CHARGE_LIMIT as short,",
+						"          FUNGI_LIABILITY_LIMIT as integer,",
+						"          FUNGI_PROPERTY_LIMIT as short,",
+						"          HURRICANE_DED as string,",
+						"          ID_THEFT_LIMIT as boolean,",
+						"          INCIDENTAL_FARMING_LIABILITY as string,",
+						"          INCIDENTAL_OCCUPANCY as boolean,",
+						"          INCIDENTAL_OCCUPANCY_DESC as string,",
+						"          LOSS_ASSESSMENT_LIMIT as short,",
+						"          LOSS_OF_USE_LIMIT as integer,",
+						"          LOSS_OF_USE_PCT as string,",
+						"          MEDICAL_PAYMENTS_LIMIT as string,",
+						"          ORDINANCE_LAW as string,",
+						"          OTHER_STRUCTURES_LIMIT as integer,",
+						"          OTHER_STRUCTURES_PCT as short,",
+						"          OPENING_WINDOW_PROT as boolean,",
+						"          PERSONAL_LIABILITY_LIMIT as string,",
+						"          PERSONAL_PROPERTY_LIMIT as integer,",
+						"          PERSONAL_PROPERTY_PCT as string,",
+						"          REPLACEMENT_COST_CONTENTS as boolean,",
+						"          REPLACEMENT_COST_DWELLING as boolean,",
+						"          SINKHOLE_COV as boolean,",
+						"          THEFT_DED as string,",
+						"          UNSCHEDULED_INCR_COV_C_SPECIAL_ELEC as short,",
+						"          UNSCHEDULED_INCR_COV_C_SPECIAL_GUNS as short,",
+						"          UNSCHEDULED_INCR_COV_C_JWF as short,",
+						"          UNSCHEDULED_INCR_COV_C_SPECIAL_MONEY as short,",
+						"          UNSCHEDULED_INCR_COV_C_SPECIAL_SECURITIES as short,",
+						"          UNSCHEDULED_INCR_COV_C_SPECIAL_SILVER as short,",
+						"          UNSCHEDULED_REFRIGERATED_FOOD as boolean,",
+						"          WATER_SEWER_BACKUP as short,",
+						"          WIND_HAIL_DED as string,",
+						"          AGENT_REMARKS as string,",
+						"          ANIMALS_ON_PREMISES as boolean,",
+						"          APARTMENTS as boolean,",
+						"          ARSON as short,",
+						"          BREED as short,",
+						"          BUILDING_CODE_GRADE as string,",
+						"          BUSINESS_ON_PREMISE as short,",
+						"          CONSTRUCTION_TYPE as string,",
+						"          COVERAGE_DECLINED as short,",
+						"          COVERAGE_DECLINED_DESC as string,",
+						"          DATE_AT_CURRENT_RESIDENCE as string,",
+						"          PURCHASE_DATE as date,",
+						"          DAY_CARE as short,",
+						"          DEADBOLT_LOCKS as boolean,",
+						"          FIRE_HYDRANT_DISTANCE as short,",
+						"          DISTANCE_TO_COAST as integer,",
+						"          DOGS_ON_PREMISES as short,",
+						"          DWELLING_LOCATION as boolean,",
+						"          DWELLING_REPLACEMENT_VALUE as integer,",
+						"          EARTHQUAKE_ZONE as string,",
+						"          EXOTIC_ANIMALS as short,",
+						"          FIRE_DIVISIONS as boolean,",
+						"          FIRE_EXTINGUISHER as boolean,",
+						"          FIRE_SPRINKLER as boolean,",
+						"          FIRE_STATION as string,",
+						"          FIRE_STATION_DISTANCE as short,",
+						"          FORECLOSURE_OR_REPO as short,",
+						"          FORECLOSURE_OR_REPO_DESC as string,",
+						"          FOUNDATION as string,",
+						"          HEAT_TYPE_PRIMARY as string,",
+						"          HEAT_TYPE_SECONDARY as string,",
+						"          LATITUDE as string,",
+						"          LONGITUDE as string,",
+						"          NON_SMOKER as short,",
+						"          NUM_OF_STORIES as double,",
+						"          NUMBER_OF_FAMILIES as boolean,",
+						"          OCCUPIED_BY as string,",
+						"          PREMIUM_TAX_CODE as string,",
+						"          PRIOR_CARRIER as string,",
+						"          PRIOR_CARRIER_OTHER as string,",
+						"          PRIOR_DATE_EXPIRE as date,",
+						"          PRIOR_POLICY_NBR as string,",
+						"          PROPERTY_ADDRESS_1 as string,",
+						"          PROPERTY_ADDRESS_2 as string,",
+						"          PROPERTY_CITY as string,",
+						"          PROPERTY_COUNTY as string,",
+						"          PROPERTY_STATE as string,",
+						"          PROPERTY_ZIP as integer,",
+						"          PROTECTION_CLASS as string,",
+						"          PROTECTION_TYPE_BURGLAR as string,",
+						"          PROTECTION_TYPE_SMOKE as string,",
+						"          PROTECTION_TYPE_TEMPERATURE as string,",
+						"          PURCHASE_PRICE as integer,",
+						"          RENO_HEAT_YEAR as short,",
+						"          RENO_PLUMBING_YEAR as short,",
+						"          RENO_ROOF_YEAR as short,",
+						"          RENO_WIRING_YEAR as short,",
+						"          RESIDENCE_EMPLOYEES_DESC as string,",
+						"          RESIDENCE_EMPLOYEES_FT as boolean,",
+						"          RESIDENCE_EMPLOYEES_PT as string,",
+						"          ROOF_MATERIAL as string,",
+						"          ROOF_SHAPE as string,",
+						"          ROOMS as boolean,",
+						"          SECURITY_ATTENDANT as short,",
+						"          SQ_FEET_TOTAL as short,",
+						"          STRUCTURE_TYPE as string,",
+						"          SWIM_POOL as string,",
+						"          SWIM_POOL_DIVE as short,",
+						"          SWIM_POOL_SLIDE as short,",
+						"          TERRITORY as string,",
+						"          TRAMPOLINE_ON_PREMISES as short,",
+						"          UNITS_IN_FIRE_DIVISION as boolean,",
+						"          USAGE_TYPE as string,",
+						"          YEAR_BUILT as short,",
+						"          CO_INSURED_DOB as date,",
+						"          CO_INSURED_EMAIL as string,",
+						"          CO_INSURED_LAST_NAME as string,",
+						"          CO_INSURED_MAIL_ADDRESS_1 as string,",
+						"          CO_INSURED_MAIL_ADDRESS_2 as string,",
+						"          CO_INSURED_MAIL_CITY as string,",
+						"          CO_INSURED_MAIL_STATE as string,",
+						"          CO_INSURED_MAIL_ZIP as string,",
+						"          CO_INSURED_MARITAL_STATUS as string,",
+						"          CO_INSURED_MIDDLE_NAME as string,",
+						"          CO_INSURED_FIRST_NAME as string,",
+						"          CO_INSURED_OCCUPATION as string,",
+						"          CO_INSURED_PHONE_PRI as string,",
+						"          CO_INSURED_PHONE_PRI_TYPE as string,",
+						"          CO_INSURED_SUFFIX as string,",
+						"          INSURED_DOB as date,",
+						"          INSURED_EMAIL as string,",
+						"          INSURED_FIRST_NAME as string,",
+						"          INSURED_LAST_NAME as string,",
+						"          INSURED_MAIL_ADDRESS_1 as string,",
+						"          INSURED_MAIL_ADDRESS_2 as string,",
+						"          INSURED_MAIL_CITY as string,",
+						"          INSURED_MAIL_STATE as string,",
+						"          INSURED_MAIL_ZIP as integer,",
+						"          INSURED_MARITAL_STATUS as string,",
+						"          INSURED_MIDDLE_NAME as string,",
+						"          INSURED_OCCUPATION as string,",
+						"          INSURED_PHONE_PRI as string,",
+						"          INSURED_PHONE_PRI_TYPE as string,",
+						"          INSURED_PHONE_SEC as string,",
+						"          INSURED_PHONE_SEC_TYPE as string,",
+						"          INSURED_PRIOR_ADDRESS_1 as string,",
+						"          INSURED_PRIOR_ADDRESS_2 as string,",
+						"          INSURED_PRIOR_CITY as string,",
+						"          INSURED_PRIOR_STATE as string,",
+						"          INSURED_PRIOR_ZIP as string,",
+						"          INSURED_SALUTATION as string,",
+						"          INSURED_SUFFIX as string,",
+						"          BILLING_PLAN as boolean,",
+						"          SEND_BILL_TO as string,",
+						"          SEND_BILL_TO_RENEWAL as string,",
+						"          BEGIN_DATE_RANGE as date,",
+						"          END_DATE_RANGE as date,",
+						"          {{PRODUCTION_DATE_CREATED} as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> source2",
+						"source1, source2 join(source1@RISK_ID == source2@RISK_ID",
+						"     && source1@RISK_TERM == source2@RISK_TERM,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"join1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/dataset5001')]",
+				"[concat(variables('factoryId'), '/datasets/output')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/output')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "outputlink",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": "output"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/outputlink')]"
+			]
+		}
+	]
+}
