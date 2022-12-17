@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "dataflow1",
+						"referenceName": "join",
 						"type": "DataFlowReference"
 					},
 					"compute": {
@@ -72,6 +72,9 @@
 				"type": "String"
 			},
 			"success": {
+				"type": "String"
+			},
+			"error": {
 				"type": "String"
 			}
 		},
