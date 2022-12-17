@@ -45,10 +45,33 @@
 						"type": "Expression"
 					}
 				}
+			},
+			{
+				"name": "success",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Data flow1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "success",
+					"value": {
+						"value": "activity('Dataflow1').Success.message",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"variables": {
 			"Error": {
+				"type": "String"
+			},
+			"success": {
 				"type": "String"
 			}
 		},
